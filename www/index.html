@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Genetics Database</title>
+  </head>
+  <body>
+    <h1>Genetics Database</h1>
+
+    SELECT * FROM
+
+    <select id="input">
+      <option value="individuals">individuals</option>
+      <option value="projects">projects</option>
+      <option value="project_enrollments">project_enrollments</option>
+      <option value="demographics">demographics</option>
+      <option value="biological_measurements">biological_measurements</option>
+      <option value="medical_history">medical_history</option>
+    </select>
+
+    <div>
+        <button type="button" id="executeQueryButton">Execute</button>
+    </div>
+
+    <div id="response"></div>
+  </body>
+  <script src="index.js"></script>
+</html>
