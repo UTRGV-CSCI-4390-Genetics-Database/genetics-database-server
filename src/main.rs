@@ -3,6 +3,7 @@ use deadpool_postgres::Pool;
 use futures::prelude::*;
 use tokio_postgres::SimpleQueryMessage;
 use warp::{reject::Reject, Filter};
+use serde::Deserialize;
 
 const DEFAULT_LISTEN_PORT: u16 = 3030;
 
@@ -24,19 +25,19 @@ async fn main() -> Result<(), Error> {
 
     let routes = {
         let static_files = warp::fs::dir("www");
-        let api = warp::path("api");
-        let api_help = api.and(warp::path::end()).map(|| "This is the API endpoint.");
-        let raw_query = warp::path!("api" / "rawQuery" / String).and_then(move |query: String| {
-            let pool = pool.clone();
-            async move {
-                raw_query(&pool, &query)
-                    .map_err(|e| {
-                        println!("error: {:?}", e);
-                        warp::reject::custom(ServerError)
-                    })
-                    .await
-            }
-        });
+        let api_help = warp::path("api").and(warp::path::end()).map(|| "This is the API endpoint.");
+        let raw_query =
+            warp::path!("api" / "raw-query").and(warp::query()).and_then(move |params: RawQueryParams| {
+                let pool = pool.clone();
+                async move {
+                    raw_query(&pool, &params.query)
+                        .map_err(|e| {
+                            println!("error: {:?}", e);
+                            warp::reject::custom(ServerError)
+                        })
+                        .await
+                }
+            });
 
         warp::get().and(static_files.or(api_help).or(raw_query))
     };
@@ -53,6 +54,11 @@ async fn main() -> Result<(), Error> {
 struct ServerError;
 
 impl Reject for ServerError {}
+
+#[derive(Debug, Deserialize)]
+struct RawQueryParams {
+    query: String,
+}
 
 async fn raw_query(pool: &Pool, query: &str) -> Result<String, Error> {
     let db = pool.get().await?;

@@ -9,6 +9,7 @@ anyhow = "1.0.26"
 deadpool-postgres = { version = "0.5.4", default-features = false }
 futures = "0.3.4"
 percent-encoding = "2.1.0"
+serde = { version = "1.0.104", features = ["derive"] }
 tokio = { version = "0.2.11", features = ["macros"] }
 tokio-postgres = "0.5.2"
 warp = "0.2.1"
