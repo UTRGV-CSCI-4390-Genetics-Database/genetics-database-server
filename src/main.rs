@@ -1,9 +1,8 @@
+mod raw_query;
+
 use anyhow::{Context, Error};
-use deadpool_postgres::Pool;
 use futures::prelude::*;
-use tokio_postgres::SimpleQueryMessage;
 use warp::{reject::Reject, Filter};
-use serde::Deserialize;
 
 const DEFAULT_LISTEN_PORT: u16 = 3030;
 
@@ -26,18 +25,19 @@ async fn main() -> Result<(), Error> {
     let routes = {
         let static_files = warp::fs::dir("www");
         let api_help = warp::path("api").and(warp::path::end()).map(|| "This is the API endpoint.");
-        let raw_query =
-            warp::path!("api" / "raw-query").and(warp::query()).and_then(move |params: RawQueryParams| {
+        let raw_query = warp::path!("api" / "raw-query").and(warp::query()).and_then(
+            move |params: raw_query::Params| {
                 let pool = pool.clone();
                 async move {
-                    raw_query(&pool, &params.query)
+                    raw_query::run(&pool, &params.query)
                         .map_err(|e| {
                             println!("error: {:?}", e);
                             warp::reject::custom(ServerError)
                         })
                         .await
                 }
-            });
+            },
+        );
 
         warp::get().and(static_files.or(api_help).or(raw_query))
     };
@@ -50,29 +50,7 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-#[derive(Debug, Copy, Clone, Default, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug)]
 struct ServerError;
 
 impl Reject for ServerError {}
-
-#[derive(Debug, Deserialize)]
-struct RawQueryParams {
-    query: String,
-}
-
-async fn raw_query(pool: &Pool, query: &str) -> Result<String, Error> {
-    let db = pool.get().await?;
-    let query_result =
-        db.simple_query(&percent_encoding::percent_decode_str(query).decode_utf8()?).await?;
-    let mut response = String::new();
-    for msg in query_result.into_iter() {
-        if let SimpleQueryMessage::Row(row) = msg {
-            for i in 0..row.len() {
-                response.push_str(&format!("{} ", row.get(i).unwrap_or("NULL")));
-            }
-            response.push('\n');
-        }
-    }
-
-    Ok(response)
-}

@@ -8,8 +8,12 @@ edition = "2018"
 anyhow = "1.0.26"
 deadpool-postgres = { version = "0.5.4", default-features = false }
 futures = "0.3.4"
+indoc = "0.3.4"
+itertools = "0.8.2"
+ndarray = "0.13.0"
 percent-encoding = "2.1.0"
 serde = { version = "1.0.104", features = ["derive"] }
+serde_json = "1.0.48"
 tokio = { version = "0.2.11", features = ["macros"] }
 tokio-postgres = "0.5.2"
 warp = "0.2.1"
