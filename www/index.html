@@ -1,29 +1,80 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Genetics Database</title>
-  </head>
-  <body>
-    <h1>Genetics Database</h1>
+<head>
+  <title>Genetics Database</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1>Genetics Database Application</h1>
+        <p>The Computer Science Department - University of Texas Rio Grande Valley </p>
+        <div class="row">
+          <div class="col" style="background-color:rgb(234, 238, 226);"> 
+            <div class="dropdown">
+                 <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">Demographics</button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#">Age</a>
+                    <a class="dropdown-item" href="#">Age at Death</a>
+                    <a class="dropdown-item" href="#">Date of Death</a>
+                    <a class="dropdown-item">Ancestry - Maternal Grandfather</a>
+                </div>
+            </div>
+     </div>
 
-    SELECT * FROM
-
-    <select id="input">
-      <option value="individuals">individuals</option>
-      <option value="projects">projects</option>
-      <option value="project_enrollments">project_enrollments</option>
-      <option value="demographics">demographics</option>
-      <option value="biological_measurements">biological_measurements</option>
-      <option value="medical_history">medical_history</option>
-    </select>
-
-    <div>
-        <button type="button" id="executeQueryButton">Execute</button>
+    <div class="col" style="background-color:rgb(237, 240, 192);">
+        <div class="dropdown">
+            <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">Biological Measurements</button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="#">BMI</a>
+              <a class="dropdown-item" href="#">Date(Measurements)</a>
+              <a class="dropdown-item" href="#">Abdominal Girth(cm)</a>
+              <a class="dropdown-item">Arm Circumference (cm)</a>
+            </div>
+          </div>
+    
     </div>
-
-    <div id="response"></div>
-  </body>
-  <script src="index.js"></script>
+    <div class="col" style="background-color:rgb(216, 241, 199);">
+        <div class="dropdown">
+            <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown"> Medical History</button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="dropdownCheck">
+                    <label class="form-check-label" for="dropdownCheck">Abortion</label>
+                </div>
+              </div>
+              <div class="dropdown-item">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="dropdownCheck">
+                    <label class="form-check-label" for="dropdownCheck">Achohol Abuse or Dependence</label>
+                </div>
+              </div>
+              <div class="dropdown-item">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="dropdownCheck">
+                    <label class="form-check-label" for="dropdownCheck">Acne</label>
+                </div>
+              </div>
+              <div class="dropdown-item">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="dropdownCheck">
+                    <label class="form-check-label" for="dropdownCheck">Addison's Disease</label>
+                </div>
+              </div>
+              <div class="dropdown-item">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="dropdownCheck">
+                    <label class="form-check-label" for="dropdownCheck">Adrenal Problems</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+</body>
 </html>
