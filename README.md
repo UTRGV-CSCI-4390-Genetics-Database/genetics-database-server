@@ -1,5 +1,5 @@
 # Genetics Database
 
-### [Open App](https://pure-beyond-93782.herokuapp.com/)
+### [Open App](https://genetics-database.herokuapp.com/)
 
 A web application for exploring genetics data.
