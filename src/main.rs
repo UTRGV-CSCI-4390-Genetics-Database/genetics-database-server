@@ -1,10 +1,11 @@
 mod raw_query;
 
 use anyhow::{Context, Error};
-use futures::prelude::*;
-use warp::{reject::Reject, Filter};
+use deadpool_postgres::Pool;
+use warp::{reject::Reject, Filter, Reply};
 
 const DEFAULT_LISTEN_PORT: u16 = 3030;
+const MAX_DATABASE_CONNECTIONS: usize = 5;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -19,35 +20,23 @@ async fn main() -> Result<(), Error> {
         let config =
             database_url.parse().context("the environment variable DATABASE_URL is invalid")?;
         let manager = deadpool_postgres::Manager::new(config, tokio_postgres::NoTls);
-        deadpool_postgres::Pool::new(manager, 5)
+        deadpool_postgres::Pool::new(manager, MAX_DATABASE_CONNECTIONS)
     };
 
-    let routes = {
-        let static_files = warp::fs::dir("www");
-        let api_help = warp::path("api").and(warp::path::end()).map(|| "This is the API endpoint.");
-        let raw_query = warp::path!("api" / "raw-query").and(warp::query()).and_then(
-            move |params: raw_query::Params| {
-                let pool = pool.clone();
-                async move {
-                    raw_query::run(&pool, &params.query)
-                        .map_err(|e| {
-                            println!("error: {:?}", e);
-                            warp::reject::custom(ServerError)
-                        })
-                        .await
-                }
-            },
-        );
-
-        warp::get().and(static_files.or(api_help).or(raw_query))
-    };
-
-    let fut = warp::serve(routes).run(([0, 0, 0, 0], listen_port));
+    let fut = warp::serve(routes(pool)).run(([0, 0, 0, 0], listen_port));
 
     println!("Listening on port {}", listen_port);
     fut.await;
 
     Ok(())
+}
+
+fn routes(pool: Pool) -> impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static {
+    let static_files = warp::fs::dir("www");
+    let api_help = warp::path("api").and(warp::path::end()).map(|| "This is the API endpoint.");
+    let raw_query = warp::path!("api" / "raw-query").and(raw_query::run(pool.clone()));
+
+    warp::get().and(static_files.or(api_help).or(raw_query))
 }
 
 #[derive(Debug)]

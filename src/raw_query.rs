@@ -1,11 +1,14 @@
+use crate::ServerError;
 use anyhow::{format_err, Error};
 use deadpool_postgres::Pool;
+use futures::prelude::*;
 use indoc::indoc;
 use itertools::Itertools;
 use ndarray::Array2;
 use serde::{ser::SerializeSeq, Deserialize, Serialize, Serializer};
 use serde_json as json;
 use tokio_postgres::{SimpleQueryMessage, SimpleQueryRow};
+use warp::{Filter, Rejection};
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
@@ -41,9 +44,21 @@ where
     }
 }
 
-pub async fn run(pool: &Pool, query: &str) -> Result<String, Error> {
-    let db = pool.get().await?;
+pub fn run(pool: Pool) -> impl Filter<Extract = (String,), Error = Rejection> + Clone {
+    warp::query().and_then(move |params: Params| {
+        let pool = pool.clone();
+        async move {
+            inner_run(&pool, &params.query)
+                .map_err(|e| {
+                    println!("error: {:?}", e);
+                    warp::reject::custom(ServerError)
+                })
+                .await
+        }
+    })
+}
 
+async fn inner_run(pool: &Pool, query: &str) -> Result<String, Error> {
     let mut setup_query = indoc!(
         "
         BEGIN;
@@ -56,6 +71,7 @@ pub async fn run(pool: &Pool, query: &str) -> Result<String, Error> {
 
     let decoded_query = percent_encoding::percent_decode_str(query).decode_utf8()?;
     setup_query.push_str(&decoded_query);
+    let db = pool.get().await?;
     db.batch_execute(&setup_query).await?;
 
     let metadata_query = indoc!(
