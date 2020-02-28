@@ -2,14 +2,14 @@ DROP TABLE IF EXISTS individuals, projects, project_enrollments, demographics, b
 
 CREATE TABLE individuals
 (
-    id              integer PRIMARY KEY,
+    subject_id      integer PRIMARY KEY,
     pedigree_number integer,
     name            text,
     gender          text,
     is_genotyped    boolean,
     father_id       integer,
     mother_id       integer,
-    sex             char(1) CHECK ( sex = 'M' OR sex = 'F' ), -- FIXME: redundant with column in demographics table
+    sex             char(1) CHECK ( sex = 'M' OR sex = 'F' ),
     blood_sample_id text
 );
 
@@ -28,16 +28,14 @@ CREATE TABLE project_enrollments
 
 CREATE TABLE demographics
 (
-    tmp_id                    serial PRIMARY KEY,                  -- FIXME: temporary, we need a proper primary key
-    individual_name           text,
-    age                       smallint CHECK ( age >= 0 ),         -- FIXME: two age columns
+    subject_id                integer PRIMARY KEY REFERENCES individuals,
+    age                       smallint CHECK ( age >= 0 ),
     date_of_birth             date,
     allergies                 text,
     anemia                    text,
     approximate_income        text,
     asthma                    text,
     country                   text,
-    current_age               smallint CHECK ( current_age >= 0 ), -- FIXME: two age columns
     ethnicity                 text,
     father_ethnicity_1        text,
     father_ethnicity_2        text,
@@ -59,7 +57,6 @@ CREATE TABLE demographics
     religion                  text,
     other_religion            text,
     reported_race_response    text,
-    sex                       text,                                -- FIXME: redundant with column in individuals table
     skin_condition            text,
     smoked_cigarettes         text,
     times_married             smallint CHECK ( times_married >= 0 ),
@@ -68,8 +65,7 @@ CREATE TABLE demographics
 
 CREATE TABLE biological_measurements
 (
-    tmp_id               serial PRIMARY KEY, -- FIXME: temporary, we need a proper primary key
-    individual_name      text,
+    subject_id           integer PRIMARY KEY REFERENCES individuals,
     bmi                  real CHECK ( bmi > 0.0 ),
     measurements_date    date,
     abdominal_girth_cm   real CHECK ( abdominal_girth_cm > 0.0 ),
@@ -85,8 +81,7 @@ CREATE TABLE biological_measurements
 
 CREATE TABLE psychiatric_disorders
 (
-    tmp_id                               serial PRIMARY KEY, -- FIXME: temporary, we need a proper primary key
-    individual_name                      text,
+    subject_id                           integer PRIMARY KEY REFERENCES individuals,
     has_agoraphobia                      boolean,
     has_antisocial_disorder              boolean,
     has_anxiety_disorder                 boolean,
@@ -100,7 +95,7 @@ CREATE TABLE psychiatric_disorders
     has_major_depression                 boolean,
     has_mania                            boolean,
     has_mood_disorder                    boolean,
-    narrow                               smallint,           --FIXME: what is this?
+    narrow                               smallint,
     has_panic_disorder                   boolean,
     has_psychosis                        boolean,
     has_sabp_dx                          boolean,
@@ -109,14 +104,13 @@ CREATE TABLE psychiatric_disorders
     is_sc_paranoid                       boolean,
     has_sc_undifferential                boolean,
     is_sc_psy_chart_reviewed             boolean,
-    schizophrenia                        smallint,           --FIXME: should be boolean? Value '2' in sample data though.
+    schizophrenia                        smallint CHECK ( schizophrenia <= 5 ),
     unspecified_mental_illness           text
 );
 
 CREATE TABLE medical_history
 (
-    tmp_id                                       serial PRIMARY KEY, -- FIXME: temporary, we need a proper primary key
-    individual_name                              text,
+    subject_id                                   integer PRIMARY KEY REFERENCES individuals,
     abortion                                     boolean,
     alcohol_abuse_or_dependence                  boolean,
     acne                                         boolean,
