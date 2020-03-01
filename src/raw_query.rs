@@ -44,7 +44,7 @@ where
     }
 }
 
-pub fn run(pool: Pool) -> impl Filter<Extract = (String,), Error = Rejection> + Clone {
+pub fn run(pool: Pool) -> impl Filter<Extract = (warp::reply::Json,), Error = Rejection> + Clone {
     warp::query().and_then(move |params: Params| {
         let pool = pool.clone();
         async move {
@@ -58,7 +58,7 @@ pub fn run(pool: Pool) -> impl Filter<Extract = (String,), Error = Rejection> + 
     })
 }
 
-async fn inner_run(pool: &Pool, query: &str) -> Result<String, Error> {
+async fn inner_run(pool: &Pool, query: &str) -> Result<warp::reply::Json, Error> {
     let mut setup_query = indoc!(
         "
         BEGIN;
@@ -129,7 +129,7 @@ async fn inner_run(pool: &Pool, query: &str) -> Result<String, Error> {
         rows: Array2SerializeWrapper(rows),
     };
 
-    Ok(json::to_string(&response)?)
+    Ok(warp::reply::json(&response))
 }
 
 fn first_query_rows(v: Vec<SimpleQueryMessage>) -> Vec<SimpleQueryRow> {
