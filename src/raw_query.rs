@@ -49,9 +49,11 @@ pub fn create(
 }
 
 async fn execute_query(pool: &Pool, query: &str) -> Result<warp::reply::Json, RequestError> {
+    let mut db = pool.get().await.map_err(anyhow::Error::new)?;
+    let db = db.transaction().await?;
+
     let mut setup_query = indoc!(
         "
-        BEGIN;
         CREATE TEMP TABLE tmp
             ON COMMIT DROP
         AS
@@ -61,7 +63,6 @@ async fn execute_query(pool: &Pool, query: &str) -> Result<warp::reply::Json, Re
 
     let decoded_query = percent_encoding::percent_decode_str(query).decode_utf8()?;
     setup_query.push_str(&decoded_query);
-    let db = pool.get().await.map_err(anyhow::Error::new)?;
     db.batch_execute(&setup_query).await?;
 
     let metadata_query = indoc!(
@@ -85,8 +86,7 @@ async fn execute_query(pool: &Pool, query: &str) -> Result<warp::reply::Json, Re
     let row_query = indoc!(
         "
         SELECT *
-        FROM tmp;
-        COMMIT"
+        FROM tmp"
     );
 
     let rows = first_query_rows(db.simple_query(row_query).await?);
