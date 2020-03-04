@@ -1,8 +1,9 @@
 mod raw_query;
+mod util;
 
 use anyhow::{Context, Error};
 use deadpool_postgres::Pool;
-use warp::{reject::Reject, Filter, Reply};
+use warp::{Filter, Reply};
 
 const DEFAULT_LISTEN_PORT: u16 = 3030;
 const MAX_DATABASE_CONNECTIONS: usize = 5;
@@ -34,12 +35,7 @@ async fn main() -> Result<(), Error> {
 fn routes(pool: Pool) -> impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static {
     let static_files = warp::fs::dir("www");
     let api_help = warp::path("api").and(warp::path::end()).map(|| "This is the API endpoint.");
-    let raw_query = warp::path!("api" / "raw-query").and(raw_query::run(pool.clone()));
+    let raw_query = warp::path!("api" / "raw-query").and(raw_query::create(pool.clone()));
 
     warp::get().and(static_files.or(api_help).or(raw_query))
 }
-
-#[derive(Debug)]
-struct ServerError;
-
-impl Reject for ServerError {}

@@ -1,17 +1,17 @@
-use crate::ServerError;
-use anyhow::{format_err, Error};
+use crate::util::{self, Array2SerializeWrapper};
+use anyhow::format_err;
 use deadpool_postgres::Pool;
-use futures::prelude::*;
 use indoc::indoc;
 use itertools::Itertools;
 use ndarray::Array2;
-use serde::{ser::SerializeSeq, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use serde_json as json;
+use std::{convert::Infallible, str};
 use tokio_postgres::{SimpleQueryMessage, SimpleQueryRow};
-use warp::{Filter, Rejection};
+use warp::{http::StatusCode, Filter, Rejection, Reply};
 
 #[derive(Debug, Deserialize)]
-pub struct Params {
+struct Params {
     pub query: String,
 }
 
@@ -23,42 +23,32 @@ struct Response<'a, 'b> {
     pub rows: Array2SerializeWrapper<json::Value>,
 }
 
-#[derive(Debug)]
-struct Array2SerializeWrapper<T>(Array2<T>);
+#[derive(Debug, thiserror::Error)]
+enum RequestError {
+    #[error(transparent)]
+    InvalidInput(#[from] str::Utf8Error),
 
-impl<T> Serialize for Array2SerializeWrapper<T>
-where
-    T: Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut seq = serializer.serialize_seq(Some(self.0.nrows()))?;
-        for row in self.0.genrows() {
-            let row = row.as_slice().unwrap();
-            seq.serialize_element(row)?;
-        }
+    #[error(transparent)]
+    SqlError(#[from] tokio_postgres::error::DbError),
 
-        seq.end()
-    }
+    #[error(transparent)]
+    ServerError(#[from] anyhow::Error),
 }
 
-pub fn run(pool: Pool) -> impl Filter<Extract = (warp::reply::Json,), Error = Rejection> + Clone {
+pub fn create(
+    pool: Pool,
+) -> impl Filter<Extract = (warp::reply::Response,), Error = Rejection> + Clone {
     warp::query().and_then(move |params: Params| {
         let pool = pool.clone();
         async move {
-            inner_run(&pool, &params.query)
-                .map_err(|e| {
-                    println!("error: {:?}", e);
-                    warp::reject::custom(ServerError)
-                })
-                .await
+            let result = execute_query(&pool, &params.query).await;
+
+            handle_errors(result)
         }
     })
 }
 
-async fn inner_run(pool: &Pool, query: &str) -> Result<warp::reply::Json, Error> {
+async fn execute_query(pool: &Pool, query: &str) -> Result<warp::reply::Json, RequestError> {
     let mut setup_query = indoc!(
         "
         BEGIN;
@@ -71,7 +61,7 @@ async fn inner_run(pool: &Pool, query: &str) -> Result<warp::reply::Json, Error>
 
     let decoded_query = percent_encoding::percent_decode_str(query).decode_utf8()?;
     setup_query.push_str(&decoded_query);
-    let db = pool.get().await?;
+    let db = pool.get().await.map_err(anyhow::Error::new)?;
     db.batch_execute(&setup_query).await?;
 
     let metadata_query = indoc!(
@@ -101,7 +91,7 @@ async fn inner_run(pool: &Pool, query: &str) -> Result<warp::reply::Json, Error>
 
     let rows = first_query_rows(db.simple_query(row_query).await?);
     let row_count = rows.len();
-    let rows: Result<Vec<_>, Error> = rows
+    let rows: Result<Vec<_>, RequestError> = rows
         .iter()
         .flat_map(|row| {
             column_types.iter().enumerate().map(move |(i, column_type)| {
@@ -113,7 +103,9 @@ async fn inner_run(pool: &Pool, query: &str) -> Result<warp::reply::Json, Error>
 
                 let x = match *column_type {
                     "boolean" => json::Value::from(if x == "t" { true } else { false }),
-                    "integer" | "smallint" | "bigint" => json::Value::from(x.parse::<f64>()?),
+                    "integer" | "smallint" | "bigint" => {
+                        json::Value::from(x.parse::<f64>().map_err(anyhow::Error::new)?)
+                    }
                     _ => json::Value::from(x),
                 };
 
@@ -137,4 +129,48 @@ fn first_query_rows(v: Vec<SimpleQueryMessage>) -> Vec<SimpleQueryRow> {
         .map(|msg| if let SimpleQueryMessage::Row(row) = msg { Some(row) } else { None })
         .while_some()
         .collect_vec()
+}
+
+fn handle_errors(x: Result<impl Reply, RequestError>) -> Result<warp::reply::Response, Infallible> {
+    match x {
+        Ok(x) => Ok(x.into_response()),
+        Err(e) => {
+            let code;
+            let message;
+
+            match e {
+                RequestError::InvalidInput(_) => {
+                    code = StatusCode::BAD_REQUEST;
+                    message = "invalid query string";
+                }
+                RequestError::SqlError(_) => {
+                    code = StatusCode::BAD_REQUEST;
+                    message = "SQL error";
+                }
+                RequestError::ServerError(e) => {
+                    println!("error: {:?}", e);
+
+                    code = StatusCode::INTERNAL_SERVER_ERROR;
+                    message = "internal server error";
+                }
+            }
+
+            Ok(util::error_response(code, message))
+        }
+    }
+}
+
+impl From<tokio_postgres::Error> for RequestError {
+    fn from(e: tokio_postgres::Error) -> Self {
+        let msg = format!("{}", e);
+
+        if let Some(source) = e.into_source() {
+            return match source.downcast::<tokio_postgres::error::DbError>() {
+                Ok(e) => RequestError::SqlError(*e),
+                Err(e) => RequestError::ServerError(format_err!(e)),
+            };
+        }
+
+        RequestError::ServerError(format_err!(msg))
+    }
 }
