@@ -37,5 +37,6 @@ fn routes(pool: Pool) -> impl Filter<Extract = impl Reply> + Clone + Send + Sync
     let api_help = warp::path("api").and(warp::path::end()).map(|| "This is the API endpoint.");
     let raw_query = warp::path!("api" / "raw-query").and(raw_query::create(pool.clone()));
 
-    warp::get().and(static_files.or(api_help).or(raw_query))
+    let cors = warp::cors().allow_any_origin().build();
+    warp::get().and(static_files.or(api_help).or(raw_query)).with(cors)
 }
