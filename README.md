@@ -1,10 +1,6 @@
 # Genetics Database
 
-A web application for exploring genetics data.
-
-### [Open App](https://genetics-database.herokuapp.com/)
-
----
+A web server providing an API to query a genetics database.
 
 ### Building and Running
 
@@ -23,4 +19,4 @@ A web application for exploring genetics data.
 
     **Windows PowerShell:** `$env:DATABASE_URL='postgres://<user>:<pass>@<host>/<db>'`
 
-2. To run the server, execute `cargo run` in this directory (or use `cargo run --release` instead for an optimized build). Once running, the web app can be accessed at http://localhost:3030/. You can change the port by setting the `PORT` environment variable before running.
+2. To run the server, execute `cargo run` in this directory (or use `cargo run --release` instead for an optimized build). Once running, the API will be available at http://localhost:3030/api. You can change the port by setting the `PORT` environment variable before running.

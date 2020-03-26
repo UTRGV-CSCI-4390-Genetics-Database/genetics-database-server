@@ -33,10 +33,9 @@ async fn main() -> Result<(), Error> {
 }
 
 fn routes(pool: Pool) -> impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static {
-    let static_files = warp::fs::dir("www");
     let api_help = warp::path("api").and(warp::path::end()).map(|| "This is the API endpoint.");
     let raw_query = warp::path!("api" / "raw-query").and(raw_query::create(pool.clone()));
 
     let cors = warp::cors().allow_any_origin().build();
-    warp::get().and(static_files.or(api_help).or(raw_query)).with(cors)
+    warp::get().and(api_help.or(raw_query)).with(cors)
 }
