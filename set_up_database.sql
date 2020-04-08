@@ -1,4 +1,5 @@
-DROP TABLE IF EXISTS individuals, projects, project_enrollments, demographics, biological_measurements, psychiatric_disorders, medical_history, markers;
+DROP TABLE IF EXISTS individuals, projects, project_enrollments, demographics, biological_measurements,
+    psychiatric_disorders, medical_history, blood_samples, markers, categories, category_individuals, category_markers;
 
 CREATE TABLE individuals
 (
@@ -9,21 +10,20 @@ CREATE TABLE individuals
     is_genotyped    boolean,
     father_id       integer,
     mother_id       integer,
-    sex             char(1) CHECK ( sex = 'M' OR sex = 'F' ),
-    blood_sample_id text
+    sex             char(1) CHECK ( sex = 'M' OR sex = 'F' )
 );
 
 CREATE TABLE projects
 (
     id   integer PRIMARY KEY,
-    name text
+    name text NOT NULL
 );
 
 CREATE TABLE project_enrollments
 (
     project_id    integer REFERENCES projects,
     individual_id integer REFERENCES individuals,
-    UNIQUE (project_id, individual_id)
+    PRIMARY KEY (project_id, individual_id)
 );
 
 CREATE TABLE demographics
@@ -31,12 +31,9 @@ CREATE TABLE demographics
     subject_id                integer PRIMARY KEY REFERENCES individuals,
     age                       smallint CHECK ( age >= 0 ),
     date_of_birth             date,
-    allergies                 boolean,
-    anemia                    boolean,
     approximate_income        smallint CHECK ( approximate_income BETWEEN 1 AND 8 ),
-    asthma                    boolean,
     country                   text,
-    ethnicity                 smallint CHECK ( ethnicity BETWEEN 210 AND 290 ),
+    ethnic_category           smallint CHECK ( ethnic_category BETWEEN 1 AND 2 ),
     father_ethnicity_1        smallint CHECK ( father_ethnicity_1 BETWEEN 210 AND 290 ),
     father_ethnicity_2        smallint CHECK ( father_ethnicity_2 BETWEEN 210 AND 290 ),
     father_ethnicity_3        smallint CHECK ( father_ethnicity_3 BETWEEN 210 AND 290 ),
@@ -55,9 +52,8 @@ CREATE TABLE demographics
     years_smoking             real CHECK ( years_smoking >= 0.0 ),
     occupational_disability   boolean,
     religion                  smallint CHECK ( religion BETWEEN 1 AND 6 ),
-    other_religion            text CHECK ( religion = 6 ),
-    reported_race_response    smallint CHECK ( reported_race_response BETWEEN 1 AND 7 ),
-    skin_condition            boolean,
+    other_religion            text CHECK ( (other_religion IS NULL) OR (religion = 6) ),
+    reported_race    smallint CHECK ( reported_race BETWEEN 1 AND 6 ),
     smoked_cigarettes         smallint CHECK ( smoked_cigarettes BETWEEN 0 AND 2 ),
     times_married             smallint CHECK ( times_married >= 0 ),
     years_of_school           real CHECK ( years_of_school >= 0.0 )
@@ -65,7 +61,8 @@ CREATE TABLE demographics
 
 CREATE TABLE biological_measurements
 (
-    subject_id           integer PRIMARY KEY REFERENCES individuals,
+    id                   serial PRIMARY KEY,
+    subject_id           integer REFERENCES individuals,
     bmi                  real CHECK ( bmi > 0.0 ),
     measurements_date    date,
     abdominal_girth_cm   real CHECK ( abdominal_girth_cm > 0.0 ),
@@ -274,6 +271,12 @@ CREATE TABLE medical_history
     ulcerative_colitis                           boolean
 );
 
+CREATE TABLE blood_samples
+(
+    id         text PRIMARY KEY,
+    subject_id integer REFERENCES individuals
+);
+
 CREATE TABLE markers
 (
     chromosome_name text,
@@ -295,4 +298,25 @@ CREATE TABLE markers
     natam_a1        real,
     natam_a2        real,
     reference       text
+);
+
+CREATE TABLE categories
+(
+    id          serial PRIMARY KEY,
+    name        text NOT NULL,
+    description text
+);
+
+CREATE TABLE category_individuals
+(
+    category_id integer REFERENCES categories,
+    subject_id  integer REFERENCES individuals,
+    PRIMARY KEY (category_id, subject_id)
+);
+
+CREATE TABLE category_markers
+(
+    category_id integer REFERENCES categories,
+    marker_name text REFERENCES markers,
+    PRIMARY KEY (category_id, marker_name)
 );
