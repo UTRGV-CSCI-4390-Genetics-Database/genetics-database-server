@@ -1,0 +1,95 @@
+Schizophrenia:
+
+1. Paranoid schizophrenia
+2. Disorganized schizophrenia
+3. Catatonic schizophrenia
+4. Undifferentiated schizophrenia
+5. Residual schizophrenia
+
+Approximate Income:
+
+1. $0-$15,000
+2. $15,001-$25,000
+3. $25,001-$40,000
+4. $40,001-$55,000
+5. $55,001-$75,000
+6. $75,001-$100,000
+7. $100,001-$150,000
+8. Greater than $150,001
+
+Ethnic category:
+
+1. Hispanic or Latino
+2. Not Hispanic or Latino
+
+Ethnicity:
+
+210. European
+211. Anglo–Saxon
+212. Northern European
+213. West European
+214. East European, Slavic
+215. Russian
+216. Mediterranean
+220. African, sub-Saharan
+230. African, northeastern
+240. Southeast Asian
+250. All Other Asian
+260. Native Americans
+270. Admixed
+271. Hispanic
+272. Puerto Rican Hispanic
+273. Mexican Hispanic
+280. Special Populations
+290. Other
+
+Race:
+
+1. American Indian/Alaska Native
+2. Asian
+3. Native Hawaiian or Other Pacific Islander
+4. Black or African-American
+5. White
+6. More Than One Race
+
+Marital status:
+
+1. Married
+2. Separated
+3. Divorced
+4. Widowed
+5. Never Married
+
+Military discharge:
+
+1. Honorable
+2. General
+3. Medical
+4. Without Honor
+5. Undesirable
+6. Dishonorable
+7. Not Discharged, Currently in Active or Reserve Military
+
+Military rejection:
+
+1. Never called up or never rejected (include females)
+2. Rejected for physical defect
+3. Rejected for low IQ
+4. Rejected for delinquency or criminal record
+5. Rejected for other psychiatric reasons
+6. Rejected for reasons uncertain
+
+Religion:
+
+1. Catholic
+2. Protestant
+3. Jewish
+4. Moslem
+5. Not Affiliated
+6. Other
+
+Smoked cigarettes:
+
+0. No
+1. Yes, currently smoking
+2. Yes, smoked in the past
