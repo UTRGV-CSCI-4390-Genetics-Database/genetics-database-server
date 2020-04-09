@@ -9,6 +9,7 @@ use serde_json as json;
 use std::{convert::Infallible, str};
 use tokio_postgres::{SimpleQueryMessage, SimpleQueryRow};
 use warp::{http::StatusCode, Filter, Rejection, Reply};
+use std::borrow::Cow;
 
 #[derive(Debug, Deserialize)]
 struct Params {
@@ -136,26 +137,27 @@ fn handle_errors(x: Result<impl Reply, RequestError>) -> Result<warp::reply::Res
         Ok(x) => Ok(x.into_response()),
         Err(e) => {
             let code;
-            let message;
+            let message: Cow<_>;
 
             match e {
                 RequestError::InvalidInput(_) => {
                     code = StatusCode::BAD_REQUEST;
-                    message = "invalid query string";
+                    message = "invalid query string".into();
                 }
-                RequestError::SqlError(_) => {
+                RequestError::SqlError(db_error) => {
+
                     code = StatusCode::BAD_REQUEST;
-                    message = "SQL error";
+                    message = format!("SQL error: {}", db_error.message()).into();
                 }
                 RequestError::ServerError(e) => {
                     println!("error: {:?}", e);
 
                     code = StatusCode::INTERNAL_SERVER_ERROR;
-                    message = "internal server error";
+                    message = "internal server error".into();
                 }
             }
 
-            Ok(util::error_response(code, message))
+            Ok(util::error_response(code, &message))
         }
     }
 }
