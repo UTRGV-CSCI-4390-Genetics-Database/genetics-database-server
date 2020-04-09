@@ -53,7 +53,7 @@ CREATE TABLE demographics
     occupational_disability   boolean,
     religion                  smallint CHECK ( religion BETWEEN 1 AND 6 ),
     other_religion            text CHECK ( (other_religion IS NULL) OR (religion = 6) ),
-    reported_race    smallint CHECK ( reported_race BETWEEN 1 AND 6 ),
+    reported_race             smallint CHECK ( reported_race BETWEEN 1 AND 6 ),
     smoked_cigarettes         smallint CHECK ( smoked_cigarettes BETWEEN 0 AND 2 ),
     times_married             smallint CHECK ( times_married >= 0 ),
     years_of_school           real CHECK ( years_of_school >= 0.0 )
@@ -320,3 +320,8 @@ CREATE TABLE category_markers
     marker_name text REFERENCES markers,
     PRIMARY KEY (category_id, marker_name)
 );
+
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE
+    ON individuals, projects, project_enrollments, demographics, biological_measurements, psychiatric_disorders,
+    medical_history, blood_samples, markers, categories, category_individuals, category_markers
+    TO genetics_user;
