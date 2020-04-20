@@ -15,15 +15,15 @@ CREATE TABLE individuals
 
 CREATE TABLE projects
 (
-    id   integer PRIMARY KEY,
+    id   serial PRIMARY KEY,
     name text NOT NULL
 );
 
 CREATE TABLE project_enrollments
 (
     project_id    integer REFERENCES projects,
-    individual_id integer REFERENCES individuals,
-    PRIMARY KEY (project_id, individual_id)
+    subject_id integer REFERENCES individuals,
+    PRIMARY KEY (project_id, subject_id)
 );
 
 CREATE TABLE demographics
@@ -275,6 +275,7 @@ CREATE TABLE blood_samples
 (
     id                                          text PRIMARY KEY,
     subject_id                                  integer REFERENCES individuals,
+    date_collected                              date,
 
     -- Hematology
     absolute_neutrophil_count                   real CHECK ( absolute_neutrophil_count >= 0.0 ),
