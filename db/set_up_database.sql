@@ -5,7 +5,7 @@ CREATE TABLE individuals
 (
     subject_id      integer PRIMARY KEY,
     pedigree_number integer,
-    name            text,
+    individual_name text,
     gender          text,
     is_genotyped    boolean,
     father_id       integer,
@@ -15,13 +15,13 @@ CREATE TABLE individuals
 
 CREATE TABLE projects
 (
-    id   serial PRIMARY KEY,
-    name text NOT NULL
+    project_id   serial PRIMARY KEY,
+    project_name text NOT NULL
 );
 
 CREATE TABLE project_enrollments
 (
-    project_id    integer REFERENCES projects,
+    project_id integer REFERENCES projects,
     subject_id integer REFERENCES individuals,
     PRIMARY KEY (project_id, subject_id)
 );
@@ -61,19 +61,19 @@ CREATE TABLE demographics
 
 CREATE TABLE biological_measurements
 (
-    id                   serial PRIMARY KEY,
-    subject_id           integer REFERENCES individuals,
-    bmi                  real CHECK ( bmi > 0.0 ),
-    measurements_date    date,
-    abdominal_girth_cm   real CHECK ( abdominal_girth_cm > 0.0 ),
-    arm_circumference_cm real CHECK ( arm_circumference_cm > 0.0 ),
-    height_cm            real CHECK ( height_cm > 0.0 ),
-    hips_cm              real CHECK ( hips_cm > 0.0 ),
-    pulse                smallint CHECK ( pulse >= 0 ),
-    diastolic            smallint CHECK ( diastolic >= 0 ),
-    systolic             smallint CHECK ( systolic >= 0 ),
-    waist_cm             real CHECK ( waist_cm > 0.0 ),
-    weight_kg            real CHECK ( weight_kg > 0.0 )
+    biological_measurement_id serial PRIMARY KEY,
+    subject_id                integer REFERENCES individuals,
+    bmi                       real CHECK ( bmi > 0.0 ),
+    measurements_date         date,
+    abdominal_girth_cm        real CHECK ( abdominal_girth_cm > 0.0 ),
+    arm_circumference_cm      real CHECK ( arm_circumference_cm > 0.0 ),
+    height_cm                 real CHECK ( height_cm > 0.0 ),
+    hips_cm                   real CHECK ( hips_cm > 0.0 ),
+    pulse                     smallint CHECK ( pulse >= 0 ),
+    diastolic                 smallint CHECK ( diastolic >= 0 ),
+    systolic                  smallint CHECK ( systolic >= 0 ),
+    waist_cm                  real CHECK ( waist_cm > 0.0 ),
+    weight_kg                 real CHECK ( weight_kg > 0.0 )
 );
 
 CREATE TABLE psychiatric_disorders
@@ -273,7 +273,7 @@ CREATE TABLE medical_history
 
 CREATE TABLE blood_samples
 (
-    id                                          text PRIMARY KEY,
+    blood_sample_id                             text PRIMARY KEY,
     subject_id                                  integer REFERENCES individuals,
     date_collected                              date,
 
@@ -386,9 +386,9 @@ CREATE TABLE markers
 
 CREATE TABLE categories
 (
-    id          serial PRIMARY KEY,
-    name        text NOT NULL,
-    description text
+    category_id   serial PRIMARY KEY,
+    category_name text NOT NULL,
+    description   text
 );
 
 CREATE TABLE category_individuals
