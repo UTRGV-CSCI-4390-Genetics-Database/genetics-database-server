@@ -1,4 +1,4 @@
-# Genetics Database
+# Genetics Database Server
 
 A web server providing an API to query a genetics database.
 
