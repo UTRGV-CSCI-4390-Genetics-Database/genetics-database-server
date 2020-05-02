@@ -1,4 +1,4 @@
-# Genetics Database Server
+# Genetics Database Server (Rust)
 
 A web server providing an API to query a genetics database.
 
