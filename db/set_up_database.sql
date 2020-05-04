@@ -409,3 +409,5 @@ GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE
     ON individuals, projects, project_enrollments, demographics, biological_measurements, psychiatric_disorders,
     medical_history, blood_samples, markers, categories, category_individuals, category_markers
     TO genetics_user;
+
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO genetics_user;
