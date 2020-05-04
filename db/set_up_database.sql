@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS individuals, projects, project_enrollments, demographics, b
 
 CREATE TABLE individuals
 (
-    subject_id      integer PRIMARY KEY,
+    subject_id      serial PRIMARY KEY,
     pedigree_number integer,
     individual_name text,
     gender          text,
